@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  bet-maker-db:
+    image: postgres:14
+    container_name: bet-maker-db
+    restart: always
+    env_file:
+      - ./services/bet-maker/.env
+    volumes:
+      - ./data/bet-maker-postgres:/var/lib/postgresql/data
+
+
+  line-provider-db:
+    image: postgres:14
+    container_name: line-provider-db
+    restart: always
+    env_file:
+      - ./services/line-provider/.env
+    volumes:
+      - ./data/line-provider-postgres:/var/lib/postgresql/data
+
+
+  redis:
+    image: redis:alpine
+    container_name: bets-service-redis
+    restart: always
+
+
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    build: .
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "9000:8081"
+
+
+networks:
+  bets-service-network:
+    external: true
+
+  default:
+    name: bets-service-network
+
