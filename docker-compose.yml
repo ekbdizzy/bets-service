@@ -31,12 +31,40 @@ services:
     container_name: redis-commander
     hostname: redis-commander
     image: rediscommander/redis-commander:latest
-    build: .
     restart: always
     environment:
       - REDIS_HOSTS=local:redis:6379
     ports:
       - "9000:8081"
+    depends_on:
+      - redis
+
+  bet-maker:
+    container_name: bet-maker
+    build:
+      context: .
+      dockerfile: dockerfiles/bet-maker.dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/bet-maker:/app
+    depends_on:
+      - redis
+      - bet-maker-db
+
+  line-provider:
+    container_name: line-provider
+    build:
+      context: .
+      dockerfile: dockerfiles/line-provider.dockerfile
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./services/line-provider:/app
+    depends_on:
+      - redis
+      - line-provider-db
+
 
 
 networks:
