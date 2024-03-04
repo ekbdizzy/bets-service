@@ -1,10 +1,11 @@
 import contextlib
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from settings import settings
 
 
 Base = declarative_base()
+
 
 engine = create_async_engine(settings.get_postgres_uri(), future=True, echo=True)
 Session = async_sessionmaker(
@@ -13,6 +14,11 @@ Session = async_sessionmaker(
     expire_on_commit=False,
     class_=AsyncSession,
 )
+
+
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
 @contextlib.asynccontextmanager

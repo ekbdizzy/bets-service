@@ -1,12 +1,8 @@
 from enum import Enum
-from typing import Literal, get_args
 from sqlalchemy import func, UUID as sa_UUID, FetchedValue, Numeric, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID, TIMESTAMP, ENUM
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID, TIMESTAMP
 from database import Base
-
-
-# BetStatus = Literal["new", "win", "lose"]
 
 
 class BetStatus(Enum):
@@ -57,6 +53,7 @@ class Bet(Base):
         "updated_at",
         TIMESTAMP(timezone=True),
         server_onupdate=FetchedValue(),
+        nullable=True,
     )
 
     __table_args__ = (CheckConstraint(amount > 0, name="positive_amount"), {})
