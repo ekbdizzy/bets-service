@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+from tzlocal import get_localzone
 import zoneinfo
 
 from settings import redis
@@ -8,8 +9,6 @@ from schemes import CreateEventScheme, EventScheme, UpdateEventScheme
 from database import db_session
 from models import EventModel
 from datetime import datetime
-
-from tzlocal import get_localzone
 
 
 async def redis_set_event(event: EventScheme) -> None:
@@ -30,6 +29,7 @@ class EventHandler:
 
     @staticmethod
     async def create(event: CreateEventScheme) -> EventScheme:
+        """Method to create new event."""
         async with db_session() as session:
             event = EventModel(**event.model_dump())
             session.add(event)
@@ -42,6 +42,7 @@ class EventHandler:
 
     @staticmethod
     async def get_list() -> list[EventScheme]:
+        """Method to get list of events."""
         async with db_session() as session:
             query = select(EventModel)
             events = await session.execute(query)
@@ -51,6 +52,7 @@ class EventHandler:
 
     @staticmethod
     async def update(event: UpdateEventScheme) -> EventScheme:
+        """Method to update event."""
         async with db_session() as session:
             try:
                 existing_event = await session.execute(
