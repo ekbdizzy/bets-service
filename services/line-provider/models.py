@@ -1,8 +1,13 @@
+import uuid
 from enum import Enum
-from sqlalchemy import func, UUID as sa_UUID, Numeric, CheckConstraint
+from sqlalchemy import func, UUID as sa_UUID, Numeric, CheckConstraint, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, TIMESTAMP
 from database import Base
+
+
+def generate_uuid():
+    return uuid.uuid4()
 
 
 class EventStatus(Enum):
@@ -17,8 +22,14 @@ class EventModel(Base):
     id: Mapped[sa_UUID] = mapped_column(
         "id",
         PG_UUID(as_uuid=True),
+        default=generate_uuid(),
         primary_key=True,
         comment="Event ID",
+    )
+
+    title: Mapped[str] = mapped_column(
+        String(128),
+        comment="Event title",
     )
 
     coefficient: Mapped[Numeric] = mapped_column(
