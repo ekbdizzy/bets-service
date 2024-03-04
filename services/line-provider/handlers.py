@@ -1,22 +1,44 @@
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+import zoneinfo
 
+from settings import redis
 from schemes import CreateEventScheme, EventScheme, UpdateEventScheme
 from database import db_session
 from models import EventModel
+from datetime import datetime
+
+from tzlocal import get_localzone
+
+
+async def redis_set_event(event: EventScheme) -> None:
+    """Set key = event ID and value with event data and expired period equal to deadline of event."""
+    async with redis.client() as conn:
+        now = datetime.now(tz=zoneinfo.ZoneInfo(get_localzone().key))
+        expired = (event.deadline_at - now).total_seconds()
+        await conn.set(
+            str(event.id),
+            event.json(
+                exclude="id",
+            ),
+            ex=int(expired),
+        )
 
 
 class EventHandler:
 
     @staticmethod
-    async def create(event: CreateEventScheme):
+    async def create(event: CreateEventScheme) -> EventScheme:
         async with db_session() as session:
             event = EventModel(**event.model_dump())
             session.add(event)
             await session.commit()
             await session.refresh(event)
-            return event
+            result = EventScheme.model_validate(event.__dict__)
+
+            await redis_set_event(result)
+            return result
 
     @staticmethod
     async def get_list() -> list[EventScheme]:
@@ -43,7 +65,10 @@ class EventHandler:
 
                 await session.commit()
                 await session.refresh(event_model)
-                return EventScheme.model_validate(event_model.__dict__)
+
+                result = EventScheme.model_validate(event_model.__dict__)
+                await redis_set_event(result)
+                return result
 
             except NoResultFound:
                 raise HTTPException(status_code=404, detail="Event not found")
