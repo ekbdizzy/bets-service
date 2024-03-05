@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from database import db_session
 from settings import redis
 from schemes import CreateBetScheme, BetScheme, EventScheme
@@ -26,10 +26,27 @@ class BetHandler:
             result = [BetScheme.model_validate(bet.__dict__) for bet in bets]
             return result
 
+    @staticmethod
+    async def update_bets_status(event_dict: EventScheme):
+        event = EventScheme.model_validate(event_dict)
+        async with db_session() as session:
+            query = update(Bet).filter_by(event_uuid=event.id)
+            match event.status.value:
+                case "win":
+                    query = query.values(
+                        status="win",
+                        win_amount=Bet.amount * event.coefficient,
+                    )
+                case "lose":
+                    query = query.values(status="lose")
+            await session.execute(query)
+            await session.commit()
+
 
 class EventHandler:
     @staticmethod
     async def get_list() -> list[EventScheme]:
+        """Get actual events list from redis."""
         async with redis.client() as conn:
             keys = await conn.keys("event:*")
             events = []

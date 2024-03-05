@@ -11,18 +11,22 @@ from models import EventModel
 from datetime import datetime
 
 
-async def redis_set_event(event: EventScheme) -> None:
-    """Set key = event ID and value with event data and expired period equal to deadline of event."""
+async def redis_set_event(event: EventScheme, publish: bool = False) -> None:
+    """Set key = event ID and value with event data and expired period equal to deadline of event.
+    :param event: event,
+    :param publish: publish message to channel 'events' if publish = True."""
     async with redis.client() as conn:
         now = datetime.now(tz=zoneinfo.ZoneInfo(get_localzone().key))
         expired = (event.deadline_at - now).total_seconds()
         await conn.set(
             f"event:{str(event.id)}",
             event.json(
-                exclude="id",
+                exclude={"id"},
             ),
             ex=int(expired),
         )
+        if publish:
+            await redis.publish(channel="events", message=event.json())
 
 
 class EventHandler:
@@ -69,7 +73,7 @@ class EventHandler:
                 await session.refresh(event_model)
 
                 result = EventScheme.model_validate(event_model.__dict__)
-                await redis_set_event(result)
+                await redis_set_event(result, publish=True)
                 return result
 
             except NoResultFound:

@@ -8,7 +8,6 @@ import dotenv
 env = environs.Env()
 env.read_env(dotenv.find_dotenv(".env"))
 
-
 app = FastAPI()
 app.include_router(event_router)
 

@@ -1,7 +1,11 @@
+import asyncio
+
 from fastapi import FastAPI
 
 from database import create_tables
+from settings import redis
 from router import bet_router, event_router
+from subscriber import listen_events
 
 app = FastAPI()
 app.include_router(bet_router)
@@ -13,6 +17,4 @@ async def startup():
     await create_tables()
 
 
-@app.get("/status", status_code=200)
-async def status():
-    return {"status": "ok"}
+asyncio.create_task(listen_events(redis))
