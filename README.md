@@ -6,8 +6,9 @@ Contains 2 microservices:
 * `line-provider` - API for managing events.
 
 Bet updates are based on Redis messages.<br>
-Actual events for bets are based on Redis `event:*` keys with `expire=deadline`. <br>
-After the event status is updated, it will make changes to the bet status and win amount.
+Actual events for bets are based on Redis `event:*` keys with `expire=deadline`. 
+<br> After the event status is updated, it will make changes to the bet status and win amount.
+
 ---
 
 ## How to start:
