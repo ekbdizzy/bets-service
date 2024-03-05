@@ -17,7 +17,7 @@ async def redis_set_event(event: EventScheme) -> None:
         now = datetime.now(tz=zoneinfo.ZoneInfo(get_localzone().key))
         expired = (event.deadline_at - now).total_seconds()
         await conn.set(
-            str(event.id),
+            f"event:{str(event.id)}",
             event.json(
                 exclude="id",
             ),

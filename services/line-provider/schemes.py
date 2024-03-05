@@ -1,6 +1,6 @@
 from pydantic import BaseModel, FutureDatetime, UUID4, PastDatetime
 from decimal import Decimal
-from models import EventStatus, EventModel
+from models import EventStatus
 
 
 class CreateEventScheme(BaseModel):

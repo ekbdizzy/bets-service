@@ -6,8 +6,8 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID, TIMESTAMP
 from database import Base
 
 
-def generate_uuid():
-    return uuid.uuid4()
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
 
 
 class EventStatus(Enum):
@@ -22,7 +22,7 @@ class EventModel(Base):
     id: Mapped[sa_UUID] = mapped_column(
         "id",
         PG_UUID(as_uuid=True),
-        default=generate_uuid(),
+        default=generate_uuid,
         primary_key=True,
         comment="Event ID",
     )

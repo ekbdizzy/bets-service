@@ -1,3 +1,4 @@
+import aioredis
 from environs import Env
 from pydantic_settings import BaseSettings
 from pydantic import Field, PostgresDsn
@@ -10,6 +11,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field("postgres", env="POSTGRES_DB")
     POSTGRES_HOST: str = Field("localhost", env="POSTGRES_HOST")
     POSTGRES_PORT: int | str = Field("5432", env="POSTGRES_PORT")
+    REDIS_HOST: str = Field("redis://redis:6379", env="REDIS_HOST")
 
     class Config:
         env = Env().read_env()
@@ -26,3 +28,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+redis = aioredis.from_url(settings.REDIS_HOST, encoding="utf-8", decode_responses=True)
